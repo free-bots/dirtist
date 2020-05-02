@@ -8,4 +8,5 @@ import (
 func main() {
 	fmt.Println("hi")
 	fmt.Println(cleaner.GetCacheSize())
+	fmt.Println(cleaner.GetJournalSize())
 }
