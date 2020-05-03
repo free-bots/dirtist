@@ -1,10 +1,10 @@
 package cleaner
 
 import (
-	"fmt"
 	"github.com/free-bots/dirtist/utils"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"unicode/utf8"
 )
 
@@ -15,7 +15,7 @@ func ClearJournal() {
 	// todo vacuum journalctl
 }
 
-func GetJournalSize() (int, error) {
+func GetJournalSize() (float64, error) {
 	programPath, err := utils.ToolExists(journalCtl)
 	if err != nil {
 		return -1, err
@@ -27,9 +27,9 @@ func GetJournalSize() (int, error) {
 	}
 
 	// get something like 32.0M
-	rawExpr := regexp.MustCompile("\\d+.\\d\\w+")
+	rawExpr := regexp.MustCompile("\\d+.\\d+\\w+")
 	found := rawExpr.Find(output)
-	foundStr := fmt.Sprintf("%s", found)
+	foundStr := string(found)
 
 	var foundUnit byte
 	length := utf8.RuneCountInString(foundStr)
@@ -37,18 +37,24 @@ func GetJournalSize() (int, error) {
 		foundUnit = foundStr[length-1]
 	}
 
-	fmt.Printf("%s \n", foundStr)
-	fmt.Printf("%c \n", foundUnit)
+	sizeExpr := regexp.MustCompile("\\d+.\\d+")
+	sizeBytes := sizeExpr.Find(found)
+	size, err := strconv.ParseFloat(string(sizeBytes), 64)
+	if err != nil {
+		return -1, err
+	}
 
-	foundUnitStr := fmt.Sprintf("%c", foundUnit)
+	foundUnitStr := string(foundUnit)
 	switch foundUnitStr {
 	case "B":
-	case "m":
+		size *= 1
+	case "M":
+		size *= 1024
 	case "G":
+		size *= 1024 * 1024
 	}
-	// todo calculate the size
 
-	return 0, nil
+	return size, nil
 }
 
 // todo add other logs
