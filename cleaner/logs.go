@@ -1,6 +1,7 @@
 package cleaner
 
 import (
+	"fmt"
 	"github.com/free-bots/dirtist/utils"
 	"os/exec"
 	"regexp"
@@ -10,9 +11,19 @@ import (
 
 const journalCtl = "journalctl"
 
-func ClearJournal() {
+func ClearJournal() error {
 	// todo run as root
-	// todo vacuum journalctl
+	programPath, err := utils.ToolExists(journalCtl)
+	if err != nil {
+		return err
+	}
+	command := exec.Command(programPath, "--vacuum-size=0B")
+	output, err := command.Output()
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(output))
+	return nil
 }
 
 func GetJournalSize() (float64, error) {
